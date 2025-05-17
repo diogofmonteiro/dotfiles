@@ -1,2 +1,2 @@
 # dotfiles
-BSPWM environment with themes
+BSPWM environment with theme selector
