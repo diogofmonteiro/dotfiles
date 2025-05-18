@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Theme switcher script
 THEMES_DIR="$HOME/.config/bspwm/themes"
@@ -27,28 +27,48 @@ case "$selected_theme" in
 esac
 
 # Source theme configuration
-source "$theme_path/theme.conf"
+source "$theme_path/theme.sh"
 
-# Function to set BSPWM configurations
+# Function to reload polybar
+reload_polybar() {
+    # Kill all polybar instances
+    killall -q polybar
+    
+    # Wait until the processes have been shut down
+    while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
+    
+    # Launch polybar with new theme
+    polybar -c "$theme_path/polybar/config.ini" -r main &
+}
+
+# Function to apply theme
 apply_theme() {
     # Set BSPWM theme colors
-    bspc config focused_border_color "$focused_border"
-    bspc config normal_border_color "$normal_border"
-    bspc config active_border_color "$active_border"
+    bspc config focused_border_color "$bspwm_fbc"
+    bspc config normal_border_color "$bspwm_nbc"
+    bspc config active_border_color "$bspwm_abc"
+    bspc config presel_feedback_color "$bspwm_pfc"
+    
+    # Set BSPWM window settings
+    bspc config border_width "$bspwm_border"
+    bspc config window_gap "$bspwm_gap"
+    bspc config split_ratio "$bspwm_sratio"
 
     # Set wallpaper
-    local wallpaper="$theme_path/wallpapers/$wallpaper_number.jpg"
-    if [ -f "$wallpaper" ]; then
-        feh --bg-fill "$wallpaper"
-    else
-        echo "Wallpaper not found: $wallpaper"
-    fi
+    feh --bg-fill "$wallpaper"
+
+    # Update rofi theme
+    mkdir -p "$HOME/.config/rofi"
+    ln -sf "$theme_path/rofi/theme.rasi" "$HOME/.config/rofi/theme.rasi"
+
+    # Reload polybar with new theme
+    reload_polybar
 
     # Save current theme
     echo "$selected_theme" > "$CURRENT_THEME"
 
-    # Reload polybar
-    $HOME/.config/polybar/launch.sh
+    # Notify user
+    notify-send "Theme Changed" "Applied theme: $selected_theme"
 }
 
 # Apply the theme
