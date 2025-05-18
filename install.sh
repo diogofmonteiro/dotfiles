@@ -91,8 +91,14 @@ install_packages() {
 # Create necessary directories
 create_dirs() {
     echo -e "\n${CBL}${BLD}Creating config directories...${CNC}"
-    mkdir -p "$HOME"/.config/{bspwm,sxhkd,polybar,alacritty,rofi,picom}
-    mkdir -p "$HOME"/.config/bspwm/{scripts,rices}
+    mkdir -p "$HOME"/.config/bspwm
+    mkdir -p "$HOME"/.config/sxhkd
+    mkdir -p "$HOME"/.config/polybar
+    mkdir -p "$HOME"/.config/alacritty
+    mkdir -p "$HOME"/.config/rofi
+    mkdir -p "$HOME"/.config/picom
+    mkdir -p "$HOME"/.config/bspwm/scripts
+    mkdir -p "$HOME"/.config/bspwm/rices
     mkdir -p "$HOME"/.local/share/fonts
 }
 
@@ -104,8 +110,12 @@ install_configs() {
     cp -rf rice/config/* "$HOME"/.config/
     
     # Set executable permissions
-    chmod +x "$HOME"/.config/bspwm/{bspwmrc,scripts/theme-switcher.sh}
-    chmod +x "$HOME"/.config/bspwm/rices/*/{japan,forest,sunset,workspaces.sh}
+    chmod +x "$HOME"/.config/bspwm/bspwmrc
+    chmod +x "$HOME"/.config/bspwm/scripts/theme-switcher.sh
+    chmod +x "$HOME"/.config/bspwm/rices/*/japan
+    chmod +x "$HOME"/.config/bspwm/rices/*/forest
+    chmod +x "$HOME"/.config/bspwm/rices/*/sunset
+    chmod +x "$HOME"/.config/bspwm/rices/*/workspaces
     
     # Set default theme
     echo "japan" > "$HOME"/.config/bspwm/current_theme
