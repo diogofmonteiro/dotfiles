@@ -58,6 +58,11 @@ main() {
     # Set compositor settings
     set_picom_config
     
-    # Launch apps
+# Set workspaces
+    "$HOME"/.config/bspwm/themes/forest/workspaces.sh &
+    
+# Launch apps
     ./"$HOME"/.config/polybar/launch.sh
 }
+
+main
