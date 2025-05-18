@@ -1,0 +1,35 @@
+Required structure for each rice:
+
+rice/config/bspwm/rices/
+├── japan/                  # Japan theme (formerly Brenda)
+│   ├── polybar/
+│   │   ├── config.ini
+│   │   └── modules.ini
+│   ├── rofi/
+│   │   └── theme.rasi
+│   ├── wallpapers/        # Theme wallpapers
+│   ├── japan             # Theme launch script
+│   ├── theme.sh         # Theme colors and settings
+│   └── workspaces.sh    # Workspace configuration
+
+├── forest/                 # Forest theme (formerly Isabel)
+│   ├── polybar/
+│   │   ├── config.ini
+│   │   └── modules.ini
+│   ├── rofi/
+│   │   └── theme.rasi
+│   ├── wallpapers/
+│   ├── forest
+│   ├── theme.sh
+│   └── workspaces.sh
+
+└── sunset/                 # Sunset theme (formerly Daniela)
+    ├── polybar/
+    │   ├── config.ini
+    │   └── modules.ini
+    ├── rofi/
+    │   └── theme.rasi
+    ├── wallpapers/
+    ├── sunset
+    ├── theme.sh
+    └── workspaces.sh
