@@ -1,229 +1,137 @@
-#!/bin/bash
-#
-# Arch Linux Dotfiles Installation Script
-# Author: diogofmonteiro
-# License: GPL-3.0
+#!/usr/bin/env bash
+#  ███████╗███████╗████████╗██╗   ██╗██████╗ 
+#  ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
+#  ███████╗█████╗     ██║   ██║   ██║██████╔╝
+#  ╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝ 
+#  ███████║███████╗   ██║   ╚██████╔╝██║     
+#  ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
+#  Author: diogofmonteiro
+#  https://github.com/diogofmonteiro/dotfiles
 
-set -e
+CRE=$(tput setaf 1)
+CYE=$(tput setaf 3)
+CGR=$(tput setaf 2)
+CBL=$(tput setaf 4)
+BLD=$(tput bold)
+CNC=$(tput sgr0)
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+backup_date=$(date +%Y%m%d_%H%M%S)
+backup_dir="$HOME/.config.bak.$backup_date"
 
-# Installation type packages
-declare -a BASE_PACKAGES=(
-    "bspwm"
-    "sxhkd"
-    "polybar"
-    "picom"
-    "neovim"
-    "zsh"
-    "git"
-    "rofi"
-    "alacritty"
-    "xorg"
-    "xorg-xinit"
-    "ttf-font-awesome"
-    "noto-fonts"
-    "xclip"
-)
-
-declare -a FULL_PACKAGES=(
-    "gcc"
-    "make"
-    "cmake"
-    "python"
-    "nodejs"
-    "docker"
-    "visual-studio-code-bin"
-    "mpv"
-    "feh"
-    "ffmpeg"
-    "pulseaudio"
-    "pavucontrol"
-    "firefox"
-    "thunderbird"
-    "libreoffice"
-    "thunar"
-    "htop"
-    "ncdu"
-    "ranger"
-    "dunst"
-    "networkmanager"
-)
-
-# Log file
-LOG_FILE="/tmp/dotfiles_install.log"
-
-# Helper functions
-log() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+logo () {
+    local text="${1:?}"
+    echo -en "
+    ██████╗ ███████╗███████╗██╗  ██╗████████╗ ██████╗ ██████╗ 
+    ██╔══██╗██╔════╝██╔════╝██║ ██╔╝╚══██╔══╝██╔═══██╗██╔══██╗
+    ██║  ██║█████╗  ███████╗█████╔╝    ██║   ██║   ██║██████╔╝
+    ██║  ██║██╔══╝  ╚════██║██╔═██╗    ██║   ██║   ██║██╔═══╝ 
+    ██████╔╝███████╗███████║██║  ██╗   ██║   ╚██████╔╝██║     
+    ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     
+                $text
+    "
 }
 
-error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
-    exit 1
+# Install base packages
+install_base_packages() {
+    echo -e "${CBL}${BLD}Installing base packages...${CNC}"
+    yay -S --noconfirm bspwm sxhkd polybar picom alacritty rofi feh dunst \
+    xorg xorg-xinit git zsh neovim ttf-font-awesome ttf-jetbrains-mono \
+    noto-fonts xclip || error "Failed to install base packages"
 }
 
-success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: $1" >> "$LOG_FILE"
-}
-
-# Check if running on Arch Linux
-check_arch() {
-    if [ ! -f "/etc/arch-release" ]; then
-        error "This script must be run on Arch Linux"
-    fi
-}
-
-# Check for internet connection
-check_internet() {
-    log "Checking internet connection..."
-    if ! ping -c 1 archlinux.org &>/dev/null; then
-        error "No internet connection available"
-    fi
-}
-
-# Install yay AUR helper
-install_yay() {
-    if ! command -v yay &>/dev/null; then
-        log "Installing yay AUR helper..."
-        git clone https://aur.archlinux.org/yay.git /tmp/yay
-        (cd /tmp/yay && makepkg -si --noconfirm) || error "Failed to install yay"
-        rm -rf /tmp/yay
-    fi
+# Install full setup packages
+install_extra_packages() {
+    echo -e "${CBL}${BLD}Installing additional packages...${CNC}"
+    yay -S --noconfirm gcc make cmake python nodejs docker visual-studio-code-bin \
+    mpv ffmpeg pulseaudio pavucontrol firefox thunderbird libreoffice thunar \
+    htop ncdu ranger networkmanager || error "Failed to install extra packages"
 }
 
 # Backup existing configs
 backup_configs() {
-    local backup_dir="$HOME/.config.bak.$(date +%Y%m%d_%H%M%S)"
-    log "Backing up existing configs to $backup_dir..."
-    
+    echo -e "${CBL}${BLD}Backing up existing configs to ${backup_dir}...${CNC}"
     if [ -d "$HOME/.config" ]; then
         mkdir -p "$backup_dir"
-        cp -r "$HOME/.config" "$backup_dir/"
+        cp -rf "$HOME/.config" "$backup_dir/"
     fi
-}
-
-# Install packages based on selection
-install_packages() {
-    local install_type=$1
-    local packages=("${BASE_PACKAGES[@]}")
-
-    if [ "$install_type" = "full" ]; then
-        packages+=("${FULL_PACKAGES[@]}")
-    fi
-
-    log "Installing packages..."
-    yay -Syu --noconfirm "${packages[@]}" || error "Failed to install packages"
 }
 
 # Create necessary directories
 create_dirs() {
-    log "Creating config directories..."
-    mkdir -p "$HOME/.config"/{bspwm,polybar,picom,nvim,alacritty,rofi}
-    mkdir -p "$HOME/.config/bspwm/themes"
-    mkdir -p "$HOME/.config/bspwm/scripts"
-    mkdir -p "$HOME/.mozilla/firefox"
+    echo -e "${CBL}${BLD}Creating config directories...${CNC}"
+    mkdir -p "$HOME"/.config/{bspwm,sxhkd,polybar,alacritty,rofi,picom}
+    mkdir -p "$HOME"/.config/bspwm/{scripts,rices}
+    mkdir -p "$HOME"/.mozilla/firefox
+    mkdir -p "$HOME"/.local/share/fonts
 }
 
-# Setup themes
-setup_themes() {
-    log "Setting up themes..."
+# Install configurations
+install_configs() {
+    echo -e "${CBL}${BLD}Installing configurations...${CNC}"
     
-    # Copy theme files
-    cp -r "$PWD/bspwm/themes"/* "$HOME/.config/bspwm/themes/"
+    # Copy configurations
+    cp -rf rice/config/* "$HOME"/.config/
+    cp -rf rice/themes/* "$HOME"/.config/bspwm/rices/
+    cp -rf firefox/homepage "$HOME"/.mozilla/firefox/
     
-    # Copy theme switcher script
-    cp "$PWD/scripts/theme-switcher.sh" "$HOME/.config/bspwm/scripts/"
-    chmod +x "$HOME/.config/bspwm/scripts/theme-switcher.sh"
-    
-    # Copy theme shortcuts
-    cp "$PWD/bspwm/theme_shortcuts" "$HOME/.config/bspwm/"
-    chmod +x "$HOME/.config/bspwm/theme_shortcuts"
-    
-    # Install feh for wallpaper management
-    yay -S --noconfirm feh
-    
-    # Set default theme
-    "$HOME/.config/bspwm/scripts/theme-switcher.sh" japan
-}
-
-# Symlink configuration files
-link_configs() {
-    log "Linking configuration files..."
-    
-    local configs=(
-        "bspwm/bspwmrc:$HOME/.config/bspwm/bspwmrc"
-        "bspwm/sxhkdrc:$HOME/.config/bspwm/sxhkdrc"
-        "config/polybar/config.ini:$HOME/.config/polybar/config.ini"
-        "config/polybar/launch.sh:$HOME/.config/polybar/launch.sh"
-        "config/picom/picom.conf:$HOME/.config/picom/picom.conf"
-        "config/alacritty/colors.yml:$HOME/.config/alacritty/colors.yml"
-        "config/rofi/colors.rasi:$HOME/.config/rofi/colors.rasi"
-    )
-
-    for config in "${configs[@]}"; do
-        IFS=':' read -r src dest <<< "$config"
-        ln -sf "$PWD/$src" "$dest" || error "Failed to link $src"
-    }
-
     # Set executable permissions
-    chmod +x "$HOME/.config/bspwm/bspwmrc"
-    chmod +x "$HOME/.config/bspwm/sxhkdrc"
-    chmod +x "$HOME/.config/polybar/launch.sh"
+    chmod +x "$HOME"/.config/bspwm/{bspwmrc,scripts/theme-switcher.sh}
+    chmod +x "$HOME"/.config/polybar/launch.sh
 }
 
-# Set up ZSH as default shell
+# Set ZSH as default shell
 setup_zsh() {
-    log "Setting up ZSH..."
+    echo -e "${CBL}${BLD}Setting up ZSH...${CNC}"
     if [ "$SHELL" != "/bin/zsh" ]; then
-        chsh -s /bin/zsh || error "Failed to change shell to ZSH"
+        chsh -s /bin/zsh
     fi
 }
 
-# Main installation function
+# Main function
 main() {
-    # Clear or create log file
-    > "$LOG_FILE"
+    clear
+    logo "Installation Script"
     
-    log "Starting dotfiles installation..."
+    # Welcome message
+    echo -e "${CBL}${BLD}Welcome to the installation script!${CNC}"
+    echo -e "${CYE}This script will install and configure your desktop environment.${CNC}"
     
-    # System checks
-    check_arch
-    check_internet
+    read -p $'\n'"${CRE}${BLD}[!]${CNC} Proceed with installation? (y/N): " answer
     
-    # Prompt for installation type
-    echo "Select installation type:"
-    echo "1. Minimal (basic WM and essential tools)"
-    echo "2. Full (includes development tools and additional applications)"
-    read -p "Enter choice (1-2): " install_choice
+    if [[ ! $answer =~ ^[Yy]$ ]]; then
+        echo -e "\n${CRE}${BLD}Installation cancelled.${CNC}"
+        exit 1
+    fi
     
-    case $install_choice in
-        1) install_type="minimal" ;;
-        2) install_type="full" ;;
-        *) error "Invalid selection" ;;
-    esac
+    echo -e "\n${CGR}${BLD}Select installation type:${CNC}"
+    echo -e "1) Minimal Installation"
+    echo -e "2) Full Installation\n"
+    read -p "${CRE}${BLD}[!]${CNC} Enter option (1 or 2): " option
     
-    # Installation steps
+    # Install yay if not present
+    if ! command -v yay &>/dev/null; then
+        echo -e "\n${CBL}${BLD}Installing yay...${CNC}"
+        git clone https://aur.archlinux.org/yay.git /tmp/yay
+        (cd /tmp/yay && makepkg -si --noconfirm)
+        rm -rf /tmp/yay
+    fi
+    
     backup_configs
-    install_yay
-    install_packages "$install_type"
     create_dirs
-    link_configs
+    install_base_packages
+    
+    if [ "$option" = "2" ]; then
+        install_extra_packages
+    fi
+    
+    install_configs
     setup_zsh
     
-    # Setup themes
-    setup_themes
+    # Set default theme
+    "$HOME"/.config/bspwm/scripts/theme-switcher.sh japan
     
-    success "Installation completed successfully!"
-    log "Please log out and log back in to apply all changes."
+    echo -e "\n${CGR}${BLD}Installation completed successfully!${CNC}"
+    echo -e "${CYE}${BLD}Please log out and log back in to apply all changes.${CNC}"
 }
 
-# Run main function
 main "$@"
