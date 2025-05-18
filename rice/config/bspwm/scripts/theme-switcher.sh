@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Theme switcher script
-THEMES_DIR="$HOME/.config/bspwm/themes"
+RICES_DIR="$HOME/.config/bspwm/rices"
 CURRENT_THEME="$HOME/.config/bspwm/current_theme"
 
 # Check for arguments
@@ -18,7 +18,7 @@ wallpaper_number="${2:-1}"  # Default to 1 if not specified
 # Validate theme
 case "$selected_theme" in
     japan|forest|sunset)
-        theme_path="$THEMES_DIR/$selected_theme"
+        theme_path="$RICES_DIR/$selected_theme"
         ;;
     *)
         echo "Invalid theme. Available themes: japan, forest, sunset"
