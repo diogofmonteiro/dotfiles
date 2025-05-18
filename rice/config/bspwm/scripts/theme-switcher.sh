@@ -26,43 +26,25 @@ case "$selected_theme" in
         ;;
 esac
 
-# Source theme configuration
-source "$theme_path/theme.sh"
-
-# Function to reload polybar
-reload_polybar() {
-    # Kill all polybar instances
-    killall -q polybar
-    
-    # Wait until the processes have been shut down
-    while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
-    
-    # Launch polybar with new theme
-    polybar -c "$theme_path/polybar/config.ini" -r main &
-}
-
 # Function to apply theme
 apply_theme() {
-    # Set BSPWM theme colors
-    bspc config focused_border_color "$bspwm_fbc"
-    bspc config normal_border_color "$bspwm_nbc"
-    bspc config active_border_color "$bspwm_abc"
-    bspc config presel_feedback_color "$bspwm_pfc"
+    local theme_script="$theme_path/$selected_theme"
     
-    # Set BSPWM window settings
-    bspc config border_width "$bspwm_border"
-    bspc config window_gap "$bspwm_gap"
-    bspc config split_ratio "$bspwm_sratio"
+    if [ ! -x "$theme_script" ]; then
+        echo "Theme script not found or not executable: $theme_script"
+        exit 1
+    fi
 
-    # Set wallpaper
-    feh --bg-fill "$wallpaper"
+    # Set wallpaper (wallpaper is set in theme script)
+    if [ -f "$theme_path/wallpapers/${wallpaper_number}.jpg" ]; then
+        feh --bg-fill "$theme_path/wallpapers/${wallpaper_number}.jpg"
+    else
+        echo "Wallpaper not found: $wallpaper_number.jpg"
+        exit 1
+    fi
 
-    # Update rofi theme
-    mkdir -p "$HOME/.config/rofi"
-    ln -sf "$theme_path/rofi/theme.rasi" "$HOME/.config/rofi/theme.rasi"
-
-    # Reload polybar with new theme
-    reload_polybar
+    # Execute theme script
+    "$theme_script"
 
     # Save current theme
     echo "$selected_theme" > "$CURRENT_THEME"
