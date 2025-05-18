@@ -1,0 +1,19 @@
+# Theme switching shortcuts
+# Usage: Alt + Shift + T, followed by theme number
+
+# Theme Selection Mode
+alt + shift + t ; {1,2,3}
+    $HOME/.config/bspwm/scripts/theme-switcher.sh {japan,forest,sunset}
+
+# Wallpaper cycling for current theme
+alt + shift + t ; {n,p}
+    $HOME/.config/bspwm/scripts/theme-switcher.sh $(cat $HOME/.config/bspwm/current_theme) {next,prev}
+
+# Quick wallpaper selection (1-5)
+alt + shift + t ; {1-5}
+    $HOME/.config/bspwm/scripts/theme-switcher.sh $(cat $HOME/.config/bspwm/current_theme) {1-5}
+
+# Help menu for theme shortcuts
+alt + shift + t ; h
+    notify-send "Theme Shortcuts" \
+    "1: Japan Theme\n2: Forest Theme\n3: Sunset Theme\n\nn: Next wallpaper\np: Previous wallpaper\n1-5: Select wallpaper\nh: Show this help"

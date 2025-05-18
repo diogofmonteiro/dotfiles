@@ -1,0 +1,24 @@
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# Compiled binaries
+*.out
+*.o
+
+# VSCode settings
+.vscode/
+
+# Python cache
+__pycache__/
+
+# Personal or secret files (optional)
+secrets/

@@ -1,4 +1,32 @@
 #!/bin/bash
+
+# Start essential services
 sxhkd &
 picom &
 ~/.config/polybar/launch.sh &
+
+# Theme settings
+CURRENT_THEME="$HOME/.config/bspwm/current_theme"
+THEME_SWITCHER="$HOME/.config/bspwm/scripts/theme-switcher.sh"
+
+# Default theme settings
+bspc config border_width 3
+bspc config window_gap 10
+bspc config split_ratio 0.50
+
+# Window rules
+bspc rule -a firefox desktop='^2' follow=on
+bspc rule -a code desktop='^3'
+bspc rule -a Alacritty desktop='^1'
+
+# Load last theme or set default
+if [ -f "$CURRENT_THEME" ]; then
+    theme=$(cat "$CURRENT_THEME")
+    "$THEME_SWITCHER" "$theme"
+else
+    # Default to Japan theme
+    "$THEME_SWITCHER" japan
+fi
+
+# Theme keyboard shortcuts (Alt + Shift + T followed by theme number)
+sxhkd -c "$HOME/.config/bspwm/theme_shortcuts" &
